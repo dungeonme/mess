@@ -6,28 +6,26 @@
   <title>Mess Menu</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4f4;
       margin: 0;
       padding: 0;
-      background: #f9f9f9;
       color: #333;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
     }
-
     header {
       background-color: #003366;
       color: white;
       width: 100%;
       padding: 1rem;
       text-align: center;
-      font-size: 1.6rem;
+      font-size: 1.5rem;
       font-weight: bold;
       position: relative;
     }
-
     #dateTimeCorner {
       position: absolute;
       top: 1rem;
@@ -35,107 +33,103 @@
       font-size: 0.9rem;
       color: white;
     }
-
     #nowServing {
       margin-top: 2rem;
-      background-color: #fff;
+      background: #fff;
       padding: 1.5rem 2rem;
       border-radius: 1rem;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       max-width: 600px;
       width: 90%;
+      text-align: center;
     }
-
     #nowServing h2 {
       font-size: 1.8rem;
       margin-bottom: 1rem;
     }
-
     #nowServing p {
       font-size: 1.2rem;
     }
-
     #nextMeal {
-      margin-top: 1.2rem;
+      margin-top: 1rem;
       text-align: center;
       font-size: 1rem;
-      color: #666;
+      color: #555;
     }
-
     #footer {
       margin-top: auto;
       width: 100%;
       text-align: center;
-      padding: 0.75rem;
+      padding: 0.7rem;
       background-color: #eee;
       font-size: 0.9rem;
+      position: fixed;
+      bottom: 0;
     }
   </style>
 </head>
 <body>
   <header>
     Mess Menu
-    <div id="dateTimeCorner"></div>
+    <div id="dateTimeCorner">--</div>
   </header>
 
   <div id="nowServing">
-    <h2>🍽️ Now Serving: <span id="mealType">Loading...</span></h2>
-    <p id="mealItems">Please wait...</p>
+    <h2>🍽️ Now Serving: <span id="mealType"></span></h2>
+    <p id="mealItems">Loading...</p>
   </div>
 
-  <div id="nextMeal">⏭️ Checking next meal...</div>
+  <div id="nextMeal">⏭️ Loading next meal...</div>
 
-  <div id="footer">🔄 Last updated: <span id="lastUpdated">--:--:--</span></div>
+  <div id="footer">🔄 Last updated: <span id="lastUpdated">--:--</span></div>
 
   <script>
     const GOOGLE_SHEETS_ID = '1FpPpxAOqDTAOgGvTHUUHHTlFDIkrEB3lSmeNbKy1hX8';
     const SHEET_NAME = 'Sheet1';
     const MEAL_TIMES = [
-      { name: "Breakfast", start: "08:30", end: "10:30", emoji: "🌅" },
-      { name: "Lunch", start: "13:00", end: "15:00", emoji: "☀️" },
-      { name: "Snacks", start: "17:30", end: "19:30", emoji: "🍪" },
-      { name: "Dinner", start: "20:30", end: "22:30", emoji: "🌙" }
+      { name: "Night", start: "00:00", end: "02:30" },
+      { name: "Breakfast", start: "08:30", end: "10:30" },
+      { name: "Lunch", start: "13:00", end: "15:00" },
+      { name: "Snacks", start: "17:30", end: "19:30" },
+      { name: "Dinner", start: "20:30", end: "22:30" }
     ];
 
-    function timeToMinutes(timeStr) {
-      const [h, m] = timeStr.split(':').map(Number);
+    function timeToMinutes(time) {
+      const [h, m] = time.split(":").map(Number);
       return h * 60 + m;
     }
 
     function getCurrentMeal(now) {
-      const mins = now.getHours() * 60 + now.getMinutes();
-      if (mins >= 0 && mins < 150) return { name: "Night", emoji: "🌙", isNight: true };
+      const nowMin = now.getHours() * 60 + now.getMinutes();
       for (let meal of MEAL_TIMES) {
         const start = timeToMinutes(meal.start);
         const end = timeToMinutes(meal.end);
-        if (mins >= start && mins < end) return meal;
+        if (nowMin >= start && nowMin < end) return meal;
       }
       return null;
     }
 
     function getNextMeal(now) {
-      const mins = now.getHours() * 60 + now.getMinutes();
+      const nowMin = now.getHours() * 60 + now.getMinutes();
       for (let meal of MEAL_TIMES) {
         const start = timeToMinutes(meal.start);
-        if (mins < start) return meal;
+        if (nowMin < start) return meal;
       }
-      return MEAL_TIMES[0]; // Next day's breakfast
+      return MEAL_TIMES[0]; // First meal next day
     }
 
     function updateClock() {
       const now = new Date();
       const options = { weekday: 'long', month: 'short', day: 'numeric' };
-      const dateStr = now.toLocaleDateString('en-IN', options);
-      const timeStr = now.toLocaleTimeString('en-IN');
-      document.getElementById("dateTimeCorner").innerText = `${dateStr}, ${timeStr}`;
+      document.getElementById("dateTimeCorner").innerText = 
+        `${now.toLocaleDateString('en-IN', options)}, ${now.toLocaleTimeString('en-IN')}`;
     }
 
     async function loadMenuData() {
       const now = new Date();
+      const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
       const currentMeal = getCurrentMeal(now);
       const nextMeal = getNextMeal(now);
-      const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
 
       const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
       try {
@@ -143,52 +137,62 @@
         const text = await response.text();
         const json = JSON.parse(text.substring(47).slice(0, -2));
         const rows = json.table.rows;
-        const headers = json.table.cols.map(col => col.label);
+        const headers = json.table.cols.map(c => c.label);
+        
         const data = {};
-
-        rows.forEach(row => {
-          const day = row.c[0]?.v;
-          if (!day) return;
+        for (let row of rows) {
+          const cells = row.c;
+          if (!cells[0]) continue;
+          const day = cells[0].v;
           data[day] = {};
           for (let i = 1; i < headers.length; i++) {
-            data[day][headers[i]] = row.c[i]?.v || "";
+            data[day][headers[i]] = cells[i]?.v || "";
           }
-        });
-
-        const mealTitleEl = document.getElementById("mealType");
-        const mealItemsEl = document.getElementById("mealItems");
-        const nextMealEl = document.getElementById("nextMeal");
-
-        if (currentMeal) {
-          if (currentMeal.isNight) {
-            mealTitleEl.innerText = "Night Mess is Open";
-            mealItemsEl.innerText = "🍛 No menu listed for night mess";
-          } else {
-            const todayMenu = data[dayName] || {};
-            const mealText = todayMenu[currentMeal.name] || "Menu not available";
-            mealTitleEl.innerText = `${currentMeal.emoji} ${currentMeal.name}`;
-            mealItemsEl.innerText = mealText;
-          }
-        } else {
-          mealTitleEl.innerText = "🔒 Mess is Closed";
-          mealItemsEl.innerText = "No meals are currently being served.";
         }
 
-        const todayMenu = data[dayName] || {};
-        const nextText = todayMenu[nextMeal.name] || "Menu not available";
-        nextMealEl.innerText = `⏭️ Next: ${nextMeal.name} at ${nextMeal.start} — ${nextText}`;
-        document.getElementById("lastUpdated").innerText = now.toLocaleTimeString('en-IN');
+        // Determine meal info
+        let mealTypeText = '';
+        let mealText = '';
+        if (currentMeal?.name === "Night") {
+          mealTypeText = `${dayName} Night Mess`;
+          mealText = "Night mess is open";
+        } else if (currentMeal) {
+          mealTypeText = `${dayName} ${currentMeal.name}`;
+          mealText = data[dayName]?.[currentMeal.name] || "Menu not available";
+        } else {
+          mealTypeText = "Closed";
+          mealText = "Mess is currently closed";
+        }
 
-      } catch (e) {
-        console.error("Error loading sheet:", e);
+        document.getElementById("mealType").innerText = mealTypeText;
+        document.getElementById("mealItems").innerText = mealText;
+
+        // Determine next meal's menu
+        let nextDayName = dayName;
+        const nowMin = now.getHours() * 60 + now.getMinutes();
+        const nextStart = timeToMinutes(nextMeal.start);
+        if (nextStart < nowMin) {
+          const tomorrow = new Date(now);
+          tomorrow.setDate(now.getDate() + 1);
+          nextDayName = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
+        }
+
+        const nextMealMenu = data[nextDayName]?.[nextMeal.name] || "Menu not available";
+        document.getElementById("nextMeal").innerText = 
+          `⏭️ Next: ${nextMeal.name} at ${nextMeal.start} — ${nextMealMenu}`;
+
+        document.getElementById("lastUpdated").innerText = now.toLocaleTimeString('en-IN');
+      } catch (err) {
+        console.error(err);
         document.getElementById("mealItems").innerText = "❌ Could not load menu.";
+        document.getElementById("nextMeal").innerText = "";
       }
     }
 
     setInterval(updateClock, 1000);
     updateClock();
     loadMenuData();
-    setInterval(loadMenuData, 30000); // Refresh every 30 seconds
+    setInterval(loadMenuData, 60000); // refresh every 1 min
   </script>
 </body>
 </html>
