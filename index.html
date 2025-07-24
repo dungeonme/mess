@@ -76,8 +76,8 @@
   </header>
 
   <div id="nowServing">
-    <h2>🍽️ Now Serving: <span id="mealType">Mess is closed</span></h2>
-    <p id="mealItems">Mess is closed</p>
+    <h2>🍽️ Now Serving: <span id="mealType">Loading...</span></h2>
+    <p id="mealItems">Loading...</p>
   </div>
 
   <div id="nextMeal">⏭️ Loading next meal...</div>
@@ -92,7 +92,7 @@
       { name: "lunch", start: "13:00", end: "15:30" },
       { name: "snacks", start: "17:30", end: "19:00" },
       { name: "dinner", start: "20:30", end: "22:30" },
-      { name: "night", start: "00:00", end: "02:30" }
+      { name: "night mess", start: "00:00", end: "02:30" }
     ];
 
     function getCurrentMealTime(now) {
@@ -153,11 +153,11 @@
           }
         }
 
-        const mealText = (currentMeal && data[dayName] && data[dayName][currentMeal]) || "Mess is closed";
+        const mealText = (data[dayName] && data[dayName][currentMeal]) || "Mess is closed";
         const nextText = (data[dayName] && data[dayName][nextMeal.name]) || "Not available";
 
         document.getElementById("mealType").innerText = currentMeal ? `${dayName} ${currentMeal}` : "Mess is closed";
-        document.getElementById("mealItems").innerText = mealText;
+        document.getElementById("mealItems").innerText = currentMeal ? mealText : "Mess is closed";
         document.getElementById("nextMeal").innerText = `⏭️ Next: ${nextMeal.name} at ${nextMeal.start} — ${nextText}`;
         document.getElementById("lastUpdated").innerText = now.toLocaleTimeString('en-IN');
 
