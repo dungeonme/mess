@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,170 +5,416 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mess Menu</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
+    * {
       margin: 0;
       padding: 0;
-      background-color: #f4f4f4;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: #333;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: start;
-      min-height: 100vh;
     }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      flex: 1;
+    }
+    
     header {
-      background-color: #003366;
-      color: white;
-      width: 100%;
-      padding: 1rem;
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: bold;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 25px 30px;
+      margin-bottom: 30px;
       position: relative;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
-    #nowServing {
-      margin-top: 2rem;
-      background-color: #fff;
-      padding: 1.5rem 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    
+    .header-content {
       text-align: center;
-      max-width: 600px;
-      width: 90%;
     }
-    #nowServing h2 {
-      font-size: 1.8rem;
-      margin-bottom: 1rem;
+    
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
     }
-    #nowServing p {
-      font-size: 1.2rem;
+    
+    .datetime {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 0.9rem;
+      color: #666;
+      text-align: right;
+      line-height: 1.4;
     }
-    #nextMeal {
-      margin-top: 1rem;
+    
+    .main-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 35px;
+      margin-bottom: 25px;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .main-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 35px 70px rgba(0, 0, 0, 0.2);
+    }
+    
+    .meal-title {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #2d3748;
+      font-weight: 600;
+    }
+    
+    .meal-emoji {
+      font-size: 2.5rem;
+      margin-right: 15px;
+      animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+      60% { transform: translateY(-5px); }
+    }
+    
+    .meal-items {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: #4a5568;
+      background: rgba(103, 126, 234, 0.05);
+      padding: 20px;
+      border-radius: 15px;
+      border-left: 4px solid #667eea;
+    }
+    
+    .next-meal {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 20px 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
       text-align: center;
       font-size: 1rem;
       color: #666;
     }
-    #footer {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      text-align: center;
-      padding: 0.5rem;
-      background-color: #eee;
-      font-size: 0.9rem;
+    
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #48bb78;
+      margin-right: 8px;
+      animation: pulse 2s infinite;
     }
-    #dateTimeCorner {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(72, 187, 120, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(72, 187, 120, 0); }
+    }
+    
+    .closed-indicator {
+      background: #f56565;
+      animation: none;
+    }
+    
+    footer {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 15px 25px;
+      text-align: center;
       font-size: 0.9rem;
-      color: white;
+      color: #666;
+      margin-top: auto;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .loading {
+      opacity: 0.7;
+      animation: loading 1.5s infinite;
+    }
+    
+    @keyframes loading {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+    
+    .error {
+      color: #e53e3e;
+      background: rgba(229, 62, 62, 0.1);
+      border-left-color: #e53e3e;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+      
+      header {
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .datetime {
+        position: static;
+        text-align: center;
+        margin-top: 10px;
+        font-size: 0.8rem;
+      }
+      
+      .main-card {
+        padding: 25px 20px;
+      }
+      
+      .meal-title {
+        font-size: 1.6rem;
+      }
+      
+      .meal-emoji {
+        font-size: 2rem;
+        margin-right: 10px;
+      }
+      
+      .meal-items {
+        font-size: 1rem;
+        padding: 15px;
+      }
     }
   </style>
 </head>
 <body>
-  <header>
-    Mess Menu
-    <div id="dateTimeCorner"></div>
-  </header>
+  <div class="container">
+    <header>
+      <div class="header-content">
+        <h1>🍽️ Mess Menu</h1>
+      </div>
+      <div class="datetime" id="datetime"></div>
+    </header>
 
-  <div id="nowServing">
-    <h2>🍽️ Now Serving: <span id="mealType">Loading...</span></h2>
-    <p id="mealItems">Loading...</p>
+    <div class="main-card">
+      <div class="meal-title">
+        <span class="status-indicator" id="statusIndicator"></span>
+        <span id="mealTitle">Loading...</span>
+      </div>
+      <div class="meal-items loading" id="mealItems">Fetching today's menu...</div>
+    </div>
+
+    <div class="next-meal" id="nextMeal">
+      ⏭️ Loading next meal information...
+    </div>
+
+    <footer>
+      🔄 Last updated: <span id="lastUpdated">--:--:--</span>
+    </footer>
   </div>
-
-  <div id="nextMeal">⏭️ Loading next meal...</div>
-
-  <div id="footer">🔄 Last updated: <span id="lastUpdated">--:--:--</span></div>
 
   <script>
     const GOOGLE_SHEETS_ID = '1FpPpxAOqDTAOgGvTHUUHHTlFDIkrEB3lSmeNbKy1hX8';
     const SHEET_NAME = 'Sheet1';
-    const MEAL_TIMES = [
-      { name: "breakfast", start: "08:00", end: "10:30" },
-      { name: "lunch", start: "13:00", end: "15:30" },
-      { name: "snacks", start: "17:30", end: "19:00" },
-      { name: "dinner", start: "20:30", end: "22:30" },
-      { name: "night mess", start: "00:00", end: "02:30" }
+    
+    const MEAL_SCHEDULE = [
+      { name: "Breakfast", start: "08:30", end: "10:30", emoji: "🌅" },
+      { name: "Lunch", start: "13:00", end: "15:00", emoji: "☀️" },
+      { name: "Snacks", start: "17:30", end: "19:30", emoji: "🍪" },
+      { name: "Dinner", start: "20:30", end: "22:30", emoji: "🌙" }
     ];
 
-    function getCurrentMealTime(now) {
+    function timeToMinutes(timeStr) {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      return hours * 60 + minutes;
+    }
+
+    function getCurrentMeal() {
+      const now = new Date();
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
-      for (let meal of MEAL_TIMES) {
-        const [startH, startM] = meal.start.split(":").map(Number);
-        const [endH, endM] = meal.end.split(":").map(Number);
-        const start = startH * 60 + startM;
-        const end = endH * 60 + endM;
-        if (start <= end) {
-          if (currentMinutes >= start && currentMinutes < end) return meal.name;
-        } else {
-          if (currentMinutes >= start || currentMinutes < end) return meal.name;
+      
+      for (const meal of MEAL_SCHEDULE) {
+        const startMinutes = timeToMinutes(meal.start);
+        const endMinutes = timeToMinutes(meal.end);
+        
+        if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+          return meal;
         }
       }
+      
       return null;
     }
 
-    function getNextMeal(now) {
+    function getNextMeal() {
+      const now = new Date();
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
-      for (let meal of MEAL_TIMES) {
-        const [startH, startM] = meal.start.split(":").map(Number);
-        const start = startH * 60 + startM;
-        if (currentMinutes < start) return meal;
+      
+      for (const meal of MEAL_SCHEDULE) {
+        const startMinutes = timeToMinutes(meal.start);
+        if (currentMinutes < startMinutes) {
+          return meal;
+        }
       }
-      return MEAL_TIMES[0]; // next day's breakfast
+      
+      // If no meal today, return tomorrow's breakfast
+      return MEAL_SCHEDULE[0];
     }
 
-    function updateClock() {
+    function updateDateTime() {
       const now = new Date();
-      const options = { weekday: 'long', month: 'short', day: 'numeric' };
-      const timeStr = now.toLocaleTimeString('en-IN');
-      const dateStr = now.toLocaleDateString('en-IN', options);
-      document.getElementById("dateTimeCorner").innerText = `${dateStr}, ${timeStr}`;
+      const options = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      };
+      const dateStr = now.toLocaleDateString('en-US', options);
+      const timeStr = now.toLocaleTimeString('en-US', { 
+        hour12: true,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      
+      document.getElementById('datetime').innerHTML = `${dateStr}<br>${timeStr}`;
     }
 
-    async function loadMenuData() {
-      const now = new Date();
-      const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
-      const currentMeal = getCurrentMealTime(now);
-      const nextMeal = getNextMeal(now);
-
+    async function fetchMenuData() {
       const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+      
       try {
         const response = await fetch(url);
         const text = await response.text();
-        const json = JSON.parse(text.substring(47).slice(0, -2));
-        const rows = json.table.rows;
-
-        const data = {};
-        const headers = json.table.cols.map(c => c.label.toLowerCase());
-        for (let row of rows) {
-          const day = row.c[0]?.v;
-          if (!day) continue;
-          data[day] = {};
-          for (let i = 1; i < headers.length; i++) {
-            data[day][headers[i]] = row.c[i]?.v || "";
+        const jsonData = JSON.parse(text.substring(47).slice(0, -2));
+        const rows = jsonData.table.rows;
+        const headers = jsonData.table.cols.map(col => col.label);
+        
+        const menuData = {};
+        
+        rows.forEach(row => {
+          const dayName = row.c[0]?.v;
+          if (dayName) {
+            menuData[dayName] = {};
+            headers.forEach((header, index) => {
+              if (index > 0) {
+                menuData[dayName][header] = row.c[index]?.v || '';
+              }
+            });
           }
-        }
-
-        const mealText = (data[dayName] && data[dayName][currentMeal]) || "Mess is closed";
-        const nextText = (data[dayName] && data[dayName][nextMeal.name]) || "Not available";
-
-        document.getElementById("mealType").innerText = currentMeal ? `${dayName} ${currentMeal}` : "Mess is closed";
-        document.getElementById("mealItems").innerText = currentMeal ? mealText : "Mess is closed";
-        document.getElementById("nextMeal").innerText = `⏭️ Next: ${nextMeal.name} at ${nextMeal.start} — ${nextText}`;
-        document.getElementById("lastUpdated").innerText = now.toLocaleTimeString('en-IN');
-
-      } catch (e) {
-        document.getElementById("mealItems").innerText = "❌ Could not load menu.";
-        console.error(e);
+        });
+        
+        return menuData;
+      } catch (error) {
+        console.error('Error fetching menu data:', error);
+        throw error;
       }
     }
 
-    setInterval(updateClock, 1000);
-    updateClock();
-    loadMenuData();
+    function updateMealDisplay(menuData) {
+      const now = new Date();
+      const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' });
+      const currentMeal = getCurrentMeal();
+      const nextMeal = getNextMeal();
+      
+      const mealTitleEl = document.getElementById('mealTitle');
+      const mealItemsEl = document.getElementById('mealItems');
+      const nextMealEl = document.getElementById('nextMeal');
+      const statusIndicator = document.getElementById('statusIndicator');
+      const lastUpdatedEl = document.getElementById('lastUpdated');
+      
+      // Remove loading class
+      mealItemsEl.classList.remove('loading');
+      
+      if (currentMeal && menuData[currentDay]) {
+        const mealItems = menuData[currentDay][currentMeal.name] || 'Menu not available';
+        
+        mealTitleEl.innerHTML = `${currentMeal.emoji} Now Serving: ${currentMeal.name}`;
+        mealItemsEl.textContent = mealItems;
+        mealItemsEl.classList.remove('error');
+        statusIndicator.classList.remove('closed-indicator');
+        
+        // Next meal info
+        const nextMealItems = menuData[currentDay][nextMeal.name] || 'Menu not available';
+        nextMealEl.innerHTML = `⏭️ Next: ${nextMeal.name} at ${nextMeal.start} — ${nextMealItems}`;
+      } else {
+        mealTitleEl.innerHTML = '🔒 Mess is Closed';
+        mealItemsEl.textContent = 'No meals are currently being served. Check back during meal times!';
+        mealItemsEl.classList.remove('error');
+        statusIndicator.classList.add('closed-indicator');
+        
+        // Next meal info
+        const nextMealItems = menuData[currentDay] ? (menuData[currentDay][nextMeal.name] || 'Menu not available') : 'Menu not available';
+        nextMealEl.innerHTML = `⏭️ Next: ${nextMeal.name} at ${nextMeal.start} — ${nextMealItems}`;
+      }
+      
+      lastUpdatedEl.textContent = now.toLocaleTimeString('en-US', { 
+        hour12: true,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+
+    function showError() {
+      const mealTitleEl = document.getElementById('mealTitle');
+      const mealItemsEl = document.getElementById('mealItems');
+      const nextMealEl = document.getElementById('nextMeal');
+      const statusIndicator = document.getElementById('statusIndicator');
+      
+      mealTitleEl.textContent = '❌ Error Loading Menu';
+      mealItemsEl.innerHTML = 'Unable to fetch menu data. Please check your internet connection and try again.';
+      mealItemsEl.classList.remove('loading');
+      mealItemsEl.classList.add('error');
+      nextMealEl.textContent = '⚠️ Next meal information unavailable';
+      statusIndicator.classList.add('closed-indicator');
+    }
+
+    async function loadAndUpdateMenu() {
+      try {
+        const menuData = await fetchMenuData();
+        updateMealDisplay(menuData);
+      } catch (error) {
+        showError();
+      }
+    }
+
+    // Initialize
+    updateDateTime();
+    loadAndUpdateMenu();
+    
+    // Update every 30 seconds
+    setInterval(() => {
+      updateDateTime();
+      loadAndUpdateMenu();
+    }, 30000);
+    
+    // Update time every second for smooth clock
+    setInterval(updateDateTime, 1000);
   </script>
 </body>
 </html>
