@@ -263,8 +263,15 @@
         const startMinutes = timeToMinutes(meal.start);
         const endMinutes = timeToMinutes(meal.end);
         
-        if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
-          return meal;
+        // Handle night meal that crosses midnight
+        if (meal.key === "night") {
+          if (currentMinutes >= startMinutes || currentMinutes < endMinutes) {
+            return meal;
+          }
+        } else {
+          if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+            return meal;
+          }
         }
       }
       
@@ -348,16 +355,21 @@
       const statusIndicator = document.getElementById('statusIndicator');
       const lastUpdatedEl = document.getElementById('lastUpdated');
       
+      // Debug logging
+      console.log('Current time:', now.toLocaleTimeString());
+      console.log('Current meal:', currentMeal);
+      console.log('Menu data for', currentDay, ':', menuData[currentDay]);
+      
       // Remove loading class
       mealItemsEl.classList.remove('loading');
       
-      if (currentMeal && menuData[currentDay]) {
+      if (currentMeal) {
         if (currentMeal.key === "night") {
           mealTitleEl.innerHTML = `${currentMeal.emoji} Now Serving: ${currentDay} Night Mess`;
           mealItemsEl.textContent = "Night mess is open";
         } else {
           mealTitleEl.innerHTML = `${currentMeal.emoji} Now Serving: ${currentDay} ${currentMeal.name}`;
-          const mealItems = menuData[currentDay][currentMeal.key] || 'Menu not available';
+          const mealItems = menuData[currentDay]?.[currentMeal.key] || 'Menu not available';
           mealItemsEl.textContent = mealItems;
         }
         mealItemsEl.classList.remove('error');
@@ -372,9 +384,9 @@
       // Calculate next meal day
       let nextDayName = currentDay;
       const nowMin = now.getHours() * 60 + now.getMinutes();
-      const lastMealStartTime = Math.max(...MEAL_SCHEDULE.map(m => timeToMinutes(m.start)));
+      const lastMealStartTime = Math.max(...MEAL_SCHEDULE.filter(m => m.key !== 'night').map(m => timeToMinutes(m.start)));
       
-      // Only move to next day if current time is past the last meal start time
+      // Only move to next day if current time is past the last regular meal start time
       if (nowMin > lastMealStartTime) {
         const tomorrow = new Date(now);
         tomorrow.setDate(tomorrow.getDate() + 1);
