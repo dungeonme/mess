@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mess Menu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .date-time-corner {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            font-size: 0.8em;
+            color: #666;
+            text-align: right;
+            line-height: 1.2;
+            border: 1px solid #f0f0f0;
+        }
+
+        .loading-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 2000;
+            text-align: center;
+            display: none;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ff6b6b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            margin: 10px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            background: white;
+            padding-top: 60px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            padding: 20px 15px;
+            text-align: center;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            animation: pulse 2s infinite;
+        }
+
+        .open {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .closed {
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .content {
+            padding: 20px 15px;
+        }
+
+        .current-meal-highlight {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .meal-type {
+            font-size: 1.6em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .menu-items {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 18px;
+            margin-top: 15px;
+            color: #2c3e50;
+        }
+
+        .menu-text {
+            font-size: 1em;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+
+        .closed-message {
+            text-align: center;
+            padding: 30px 20px;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .closed-message .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.7;
+        }
+
+        .next-meal {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .next-meal-preview {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+        .next-meal-title {
+            font-size: 1em;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .next-meal-menu {
+            font-size: 0.85em;
+            line-height: 1.5;
+            color: #666;
+        }
+
+        .search-section {
+            background: #f8f9fa;
+            padding: 20px 15px;
+            margin: 20px 0;
+            border-radius: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .search-title {
+            font-size: 1.2em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .search-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+
+        .search-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .search-label {
+            font-size: 0.85em;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .search-select {
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            font-size: 0.9em;
+            color: #2c3e50;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .search-select:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+        }
+
+        .search-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+
+        .search-btn:hover {
+            background: #ee5a24;
+        }
+
+        .search-btn:active {
+            transform: scale(0.98);
+        }
+
+        .search-result {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            border-left: 4px solid #ff6b6b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-result-title {
+            font-size: 1.1em;
+            color: #ff6b6b;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .search-result-menu {
+            color: #2c3e50;
+            line-height: 1.5;
+            font-size: 0.9em;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1em;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            transition: all 0.3s ease;
+            z-index: 100;
+            width: 50px;
+            height: 50px;
+        }
+
+        .refresh-btn:hover {
+            background: #ee5a24;
+            transform: scale(1.05);
+        }
+
+        .refresh-btn:active {
+            transform: scale(0.95);
+        }
+
+        .sheet-status {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            font-size: 0.75em;
+            color: #666;
+            z-index: 100;
+        }
+
+        .sheet-status.success {
+            border-left: 4px solid #28a745;
+            color: #28a745;
+        }
+
+        .sheet-status.error {
+            border-left: 4px solid #dc3545;
+            color: #dc3545;
+        }
+
+        /* Optimize for WebView */
+        * {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        input, select, button {
+            -webkit-user-select: auto;
+        }
+
+        /* Smooth scrolling for WebView */
+        html {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Remove focus outlines for mobile */
+        button:focus, select:focus {
+            outline: none;
+        }
+
+        /* Ensure proper spacing for mobile */
+        @media (max-width: 480px) {
+            .search-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-group {
+                width: 100%;
+            }
+            
+            .search-btn {
+                margin-top: 10px;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="date-time-corner" id="dateTimeCorner"></div>
+    
+    <div class="loading-indicator" id="loadingIndicator">
+        <div class="loading-spinner"></div>
+        <div>Loading menu data...</div>
+    </div>
+    
+    <div class="error-message" id="errorMessage"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Mess Menu</h1>
+            <div class="status-indicator" id="statusIndicator"></div>
+        </div>
+        
+        <div class="content" id="content">
+            <!-- Content will be dynamically inserted here -->
+        </div>
+        
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-title">🔍 Search Menu by Day & Meal</div>
+            <div class="search-controls">
+                <div class="search-group">
+                    <label class="search-label">Day</label>
+                    <select id="daySelect" class="search-select">
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                        <option value="Saturday">Saturday</option>
+                        <option value="Sunday">Sunday</option>
+                    </select>
+                </div>
+                <div class="search-group">
+                    <label class="search-label">Meal</label>
+                    <select id="mealSelect" class="search-select">
+                        <option value="">Select Meal</option>
+                        <option value="breakfast">Breakfast</option>
+                        <option value="lunch">Lunch</option>
+                        <option value="snacks">Snacks</option>
+                        <option value="dinner">Dinner</option>
+                    </select>
+                </div>
+                <button class="search-btn" onclick="searchMenu()">Search</button>
+            </div>
+            <div id="searchResult"></div>
+        </div>
+    </div>
+    
+    <div style="text-align: center; padding: 20px 15px 60px 15px; color: #999; font-size: 0.75em;">
+        Creator: Akshay Sharma | Data Source: Google Sheets
+    </div>
+    
+    <div class="sheet-status" id="sheetStatus">📄 Loading...</div>
+    
+    <button class="refresh-btn" onclick="loadMenuData()" title="Refresh">🔄</button>
+
+    <script>
+        // Your Google Sheets ID
+        const GOOGLE_SHEETS_ID = '1FpPpxAOqDTAOgGvTHUUHHTlFDIkrEB3lSmeNbKy1hX8';
+        const SHEET_NAME = 'Sheet1'; // Change if your sheet has a different name
+        
+        let menuData = {};
+        let lastDataLoad = null;
+
+        // Fallback menu data (used if Google Sheets fails to load)
+        const fallbackMenuData = {
+            Monday: {
+                breakfast: "Vada with Sambar & Chutney, Egg Omelette, Chocos, Sprouts chat, Bread (White/Brown) Butter/Jam, Tea/Coffee/ Bournvita/Milk (Hot & Cold), Fresh Fruits.",
+                lunch: "Bhindi masala, Aloo Chokha, Lahsouni Masoor Dal, Sambhar, Rice, Butter Roti, Papad, Salad, Pickle, Buttermilk, Sauf/Mishri.",
+                snacks: "Maggi, Milk Coffee/Tea.",
+                dinner: "Paneer Kolhapuri, Chicken Kolapuri, Masoor Matka Dal, Rice, Butter Roti, Salad, Pickle, Rava coconut ladoo, Sauf/Mishri."
+            },
+            Tuesday: {
+                breakfast: "Aloo Paratha with Curd, Boiled Egg, Chocos, Mixed Sprouts, Bread (White/Brown) Butter/Jam, Tea/Coffee/ Bournvita/Milk (Hot & Cold), Fresh Fruits.",
+                lunch: "Baingan Masala, Soyabean curry, Dal Makhni, Rice, Butter Roti, Curd, Frymes, Salad, Pickle, Lemonade/ Jaljeera, Sauf/Mishri.",
+                snacks: "Dabeli, Milk coffee/ Tea.",
+                dinner: "Egg Curry, Dal Fry, Kadai Paneer, Lemon Coriander Soup, Rice, Butter Roti, Salad, Pickle, Fruit Custard, Sauf/Mishri."
+            },
+            Wednesday: {
+                breakfast: "Idli Sambar, Cornflakes, Egg Omelette, Bread (White/Brown) Butter/Jam, Tea/Coffee/ Bournvita/Milk (Hot & Cold), Fresh Fruits.",
+                lunch: "Rajma, Mixed Veg, Tomato Rassam, Mix Dal, Rice, Butter Roti, Butter Milk, Papad, Salad, Pickle, Lemonade/ Jaljeera, Sauf/Mishri.",
+                snacks: "Chole Samosa, Milk coffee/ Tea.",
+                dinner: "Mushroom Butter Masala, Chicken Butter Masala, Dal Fry, Jeera Rice, Butter Roti, Salad, Pickle, Gulab Jamun, Sauf/Mishri."
+            },
+            Thursday: {
+                breakfast: "Thepla with Chutney, Egg Bhurji, Chocos, Boiled Corn, Bread (White/Brown) Butter/Jam, Tea/Coffee/ Bournvita/Milk (Hot & Cold), Fresh Fruits.",
+                lunch: "Aloo Palak, Dal Tadka, Cabbage Sabzi, Jeera Rice, Palak Roti, Butter Roti, Curd, Frymes, Chickpea Salad, Pickle, Lemonade/ Jaljeera, Sauf/Mishri.",
+                snacks: "Uttapam and Tomato Chutney, Milk coffee/ Tea.",
+                dinner: "Aloo Bhindi fry, Soyabean dry curry, Dal Makhani, Rice, Butter Roti, Tomato Soup, Salad, Pickle, Sevai Kheer, Sauf/Mishri."
+            },
+            Friday: {
+                breakfast: "Besan Chilla & Chutney, Cornflakes, Boiled Corn, Boiled Egg, Bread (White/Brown) Butter/Jam, Tea/Coffee/ Bournvita/Milk (Hot & Cold), Fresh Fruits.",
+                lunch: "Aloo Beans, Rajma, Arhar Dal, Rice, Butter Roti, Boondi Raita, Frymes, Salad, Pickle, Lemonade/ Jaljeera, Sauf/Mishri.",
+                snacks: "Fried Idli with Chutney, Milk Coffee/ Tea.",
+                dinner: "Veg Dum Biryani, Chicken Dum Biryani, Butter Roti, Dum Aloo, Veg Raita, Papad, Salad, Pickle, Jalebi, Sauf/Mishri."
+            },
+            Saturday: {
+                breakfast: "Dosa with Sambar & Chutney, Cornflakes, Mixed Sprouts, Boiled Eggs, Bread (White/Brown) Butter/Jam, Tea/Coffee/ Bournvita/Milk (Hot & Cold), Fresh Fruits.",
+                lunch: "Moong Dal, Aloo Capsicum, Kadi Pakora, Rice, Butter Roti, Buttermilk, Salad, Pickle, Frymes, Lemonade/ Jaljeera, Sauf/Mishri.",
+                snacks: "Kachori with Aloo Sabzi, Milk Coffee/ Tea.",
+                dinner: "Chana Masala, Mixed Veg, Mix Dal, Veg Pulao, Butter Roti, Salad, Pickle, Sooji Momo/Suji Dal Halwa, Sauf/Mishri."
+            },
+            Sunday: {
+                breakfast: "Suji Upma, Cornflakes, Mixed Sprouts, Egg Omelette, Bread (White/Brown) Butter/Jam, Tea/Coffee/ Bournvita/Milk (Hot & Cold), Fresh Fruits.",
+                lunch: "Jeera Aloo, Chole, Mixed Dal, Plain Rice, Bhature, Green Chutney, Papad, Salad, Pickle, Lassi, Sauf/Mishri.",
+                snacks: "Pav Bhaji, Milk Coffee/ Tea.",
+                dinner: "Palak Paneer, Haryali Chicken, Veg Hot and Sour Soup, Butter Roti, Rice, Salad, Pickle, Ice Cream, Sauf/Mishri."
+            }
+        };
+
+        function showLoading() {
+            document.getElementById('loadingIndicator').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingIndicator').style.display = 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function updateSheetStatus(message, isSuccess = true) {
+            const statusDiv = document.getElementById('sheetStatus');
+            statusDiv.textContent = message;
+            statusDiv.className = 'sheet-status ' + (isSuccess ? 'success' : 'error');
+        }
+
+        async function loadMenuData() {
+            showLoading();
+            updateSheetStatus('Loading from Google Sheets...');
+
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+                
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                
+                // Google Sheets returns JSONP, we need to extract the JSON
+                const jsonString = text.match(/google\.visualization\.Query\.setResponse\((.*)\);/)[1];
+                const data = JSON.parse(jsonString);
+                
+                if (data.status === 'error') {
+                    throw new Error(data.errors[0].detailed_message);
+                }
+
+                // Parse the data
+                const rows = data.table.rows;
+                const newMenuData = {};
+
+                rows.forEach(row => {
+                    const day = row.c[0]?.v; // Day column
+                    const breakfast = row.c[1]?.v || "Not available"; // Breakfast column
+                    const lunch = row.c[2]?.v || "Not available"; // Lunch column
+                    const snacks = row.c[3]?.v || "Not available"; // Snacks column
+                    const dinner = row.c[4]?.v || "Not available"; // Dinner column
+
+                    if (day) {
+                        newMenuData[day] = {
+                            breakfast: breakfast,
+                            lunch: lunch,
+                            snacks: snacks,
+                            dinner: dinner
+                        };
+                    }
+                });
+
+                menuData = newMenuData;
+                lastDataLoad = new Date();
+                updateSheetStatus(`✅ Updated ${lastDataLoad.toLocaleTimeString()}`, true);
+                hideLoading();
+                updateDisplay();
+
+            } catch (error) {
+                console.error('Error loading menu data:', error);
+                showError(`Failed to load menu data: ${error.message}. Using fallback data.`);
+                menuData = fallbackMenuData;
+                updateSheetStatus('❌ Using fallback data', false);
+                hideLoading();
+                updateDisplay();
+            }
+        }
+
+        function getCurrentMealTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const totalMinutes = hours * 60 + minutes;
+
+            // Breakfast: 8:30 AM - 10:30 AM (510-630 minutes)
+            if (totalMinutes >= 510 && totalMinutes <= 630) {
+                return 'breakfast';
+            }
+            // Lunch: 1:00 PM - 3:00 PM (780-900 minutes)
+            else if (totalMinutes >= 780 && totalMinutes <= 900) {
+                return 'lunch';
+            }
+            // Snacks: 5:30 PM - 7:30 PM (1050-1170 minutes)
+            else if (totalMinutes >= 1050 && totalMinutes <= 1170) {
+                return 'snacks';
+            }
+            // Dinner: 8:30 PM - 10:30 PM (1230-1350 minutes)
+            else if (totalMinutes >= 1230 && totalMinutes <= 1350) {
+                return 'dinner';
+            }
+            // Night Canteen: 12:00 AM - 3:00 AM (0-180 minutes)
+            else if (totalMinutes >= 0 && totalMinutes <= 180) {
+                return 'night_canteen';
+            }
+            else {
+                return 'closed';
+            }
+        }
+
+        function getNextMeal() {
+            const now = new Date();
+            const totalMinutes = now.getHours() * 60 + now.getMinutes();
+            const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+
+            if (totalMinutes < 510) {
+                return { 
+                    meal: 'Breakfast', 
+                    time: '8:30 AM',
+                    mealType: 'breakfast',
+                    day: dayName
+                };
+            } else if (totalMinutes < 780) {
+                return { 
+                    meal: 'Lunch', 
+                    time: '1:00 PM',
+                    mealType: 'lunch',
+                    day: dayName
+                };
+            } else if (totalMinutes < 1050) {
+                return { 
+                    meal: 'Snacks', 
+                    time: '5:30 PM',
+                    mealType: 'snacks',
+                    day: dayName
+                };
+            } else if (totalMinutes < 1230) {
+                return { 
+                    meal: 'Dinner', 
+                    time: '8:30 PM',
+                    mealType: 'dinner',
+                    day: dayName
+                };
+            } else if (totalMinutes >= 1350) {
+                return { 
+                    meal: 'Night Canteen', 
+                    time: '12:00 AM',
+                    mealType: 'night_canteen',
+                    day: dayName
+                };
+            } else {
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const nextDay = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
+                return { 
+                    meal: 'Breakfast', 
+                    time: '8:30 AM (Tomorrow)',
+                    mealType: 'breakfast',
+                    day: nextDay
+                };
+            }
+        }
+
+        function getCurrentNextMeal() {
+            const now = new Date();
+            const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+            const mealTime = getCurrentMealTime();
+
+            if (mealTime === 'breakfast') {
+                return { 
+                    meal: 'Lunch', 
+                    time: '1:00 PM',
+                    mealType: 'lunch',
+                    day: dayName
+                };
+            } else if (mealTime === 'lunch') {
+                return { 
+                    meal: 'Snacks', 
+                    time: '5:30 PM',
+                    mealType: 'snacks',
+                    day: dayName
+                };
+            } else if (mealTime === 'snacks') {
+                return { 
+                    meal: 'Dinner', 
+                    time: '8:30 PM',
+                    mealType: 'dinner',
+                    day: dayName
+                };
+            } else if (mealTime === 'dinner') {
+                return { 
+                    meal: 'Night Canteen', 
+                    time: '12:00 AM',
+                    mealType: 'night_canteen',
+                    day: dayName
+                };
+            } else if (mealTime === 'night_canteen') {
+                return { 
+                    meal: 'Breakfast', 
+                    time: '8:30 AM',
+                    mealType: 'breakfast',
+                    day: dayName
+                };
+            } else {
+                return getNextMeal();
+            }
+        }
+
+        function updateDateTimeCorner() {
+            const now = new Date();
+            const dayName = now.toLocaleDateString('en-US', { weekday: 'short' });
+            const date = now.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric' 
+            });
+            const time = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+
+            document.getElementById('dateTimeCorner').innerHTML = `
+                <div>${dayName}, ${date}</div>
+                <div>${time}</div>
+            `;
+        }
+
+        function updateDisplay() {
+            if (Object.keys(menuData).length === 0) {
+                return; // Wait for data to load
+            }
+
+            const now = new Date();
+            const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+            
+            updateDateTimeCorner();
+
+            const mealTime = getCurrentMealTime();
+            const statusIndicator = document.getElementById('statusIndicator');
+            const content = document.getElementById('content');
+
+            if (mealTime === 'closed') {
+                statusIndicator.textContent = '🔒 MESS CLOSED';
+                statusIndicator.className = 'status-indicator closed';
+                
+                const nextMeal = getNextMeal();
+                const nextMealMenu = nextMeal.mealType === 'night_canteen' ? 
+                    'Night Canteen is open! Limited items available - Basic snacks, beverages, and light refreshments.' : 
+                    (menuData[nextMeal.day] && menuData[nextMeal.day][nextMeal.mealType]) || 'Menu not available';
+                
+                content.innerHTML = `
+                    <div class="closed-message">
+                        <div class="icon">😴</div>
+                        <h2>Mess is Currently Closed</h2>
+                        <p>Come back during meal times!</p>
+                        <div class="next-meal">
+                            <strong>Next Meal:</strong> ${nextMeal.meal} at ${nextMeal.time}
+                        </div>
+                        <div class="next-meal-preview">
+                            <div class="next-meal-title">
+                                ⏰ Coming up next - ${nextMeal.meal}
+                            </div>
+                            <div class="next-meal-menu">
+                                ${nextMealMenu}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (mealTime === 'night_canteen') {
+                statusIndicator.textContent = '🌙 NIGHT CANTEEN OPEN';
+                statusIndicator.className = 'status-indicator open';
+                
+                const nextMeal = getCurrentNextMeal();
+                const nextMealMenu = (menuData[nextMeal.day] && menuData[nextMeal.day][nextMeal.mealType]) || 'Menu not available';
+                
+                content.innerHTML = `
+                    <div class="current-meal-highlight">
+                        <div class="meal-type">Night Canteen</div>
+                        <div class="menu-items">
+                            <div class="menu-text">
+                                🌙 Night Canteen is open! Limited items available.
+                                <br><br>
+                                <strong>Available:</strong> Basic snacks, beverages, and light refreshments.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="next-meal-preview">
+                        <div class="next-meal-title">
+                            ⏰ Next meal - ${nextMeal.meal} at ${nextMeal.time}
+                        </div>
+                        <div class="next-meal-menu">
+                            ${nextMealMenu}
+                        </div>
+                    </div>
+                `;
+            } else {
+                statusIndicator.textContent = '✅ MESS OPEN';
+                statusIndicator.className = 'status-indicator open';
+                
+                const menuText = (menuData[dayName] && menuData[dayName][mealTime]) || 'Menu not available for this meal';
+                const mealTypeDisplay = mealTime.charAt(0).toUpperCase() + mealTime.slice(1);
+                const nextMeal = getCurrentNextMeal();
+                const nextMealMenu = nextMeal.mealType === 'night_canteen' ? 
+                    'Night Canteen is open! Limited items available - Basic snacks, beverages, and light refreshments.' : 
+                    (menuData[nextMeal.day] && menuData[nextMeal.day][nextMeal.mealType]) || 'Menu not available';
+                
+                content.innerHTML = `
+                    <div class="current-meal-highlight">
+                        <div class="meal-type">${mealTypeDisplay}</div>
+                        <div class="menu-items">
+                            <div class="menu-text">${menuText}</div>
+                        </div>
+                    </div>
+                    <div class="next-meal-preview">
+                        <div class="next-meal-title">
+                            ⏰ Next meal - ${nextMeal.meal} at ${nextMeal.time}
+                        </div>
+                        <div class="next-meal-menu">
+                            ${nextMealMenu}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function searchMenu() {
+            const daySelect = document.getElementById('daySelect');
+            const mealSelect = document.getElementById('mealSelect');
+            const searchResult = document.getElementById('searchResult');
+            
+            const selectedDay = daySelect.value;
+            const selectedMeal = mealSelect.value;
+            
+            if (!selectedMeal) {
+                searchResult.innerHTML = `
+                    <div class="search-result" style="border-left-color: #ff6b6b;">
+                        <div class="search-result-title" style="color: #ff6b6b;">
+                            ⚠️ Please select a meal
+                        </div>
+                        <div class="search-result-menu">
+                            Choose a meal type from the dropdown to see the menu.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            const menuText = (menuData[selectedDay] && menuData[selectedDay][selectedMeal]) || 'Menu not available for this day/meal';
+            const mealDisplayName = selectedMeal.charAt(0).toUpperCase() + selectedMeal.slice(1);
+            
+            searchResult.innerHTML = `
+                <div class="search-result">
+                    <div class="search-result-title">
+                        🍽️ ${selectedDay} ${mealDisplayName}
+                    </div>
+                    <div class="search-result-menu">
+                        ${menuText}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initialize app
+        async function initApp() {
+            await loadMenuData();
+            updateDisplay();
+            setInterval(updateDisplay, 1000);
+        }
+        
+        // Set default day to current day when page loads
+        window.addEventListener('load', function() {
+            const now = new Date();
+            const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' });
+            document.getElementById('daySelect').value = currentDay;
+            initApp();
+        });
+
+        // Prevent zoom on double tap for WebView
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
