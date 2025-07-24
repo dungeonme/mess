@@ -92,7 +92,7 @@
       { name: "lunch", start: "13:00", end: "15:30" },
       { name: "snacks", start: "17:30", end: "19:00" },
       { name: "dinner", start: "20:30", end: "22:30" },
-      { name: "night mess", start: "00:00", end: "02:30" }
+      { name: "night", start: "00:00", end: "02:30" }
     ];
 
     function getCurrentMealTime(now) {
@@ -116,7 +116,7 @@
       for (let meal of MEAL_TIMES) {
         const [startH, startM] = meal.start.split(":").map(Number);
         const start = startH * 60 + startM;
-        if (start > currentMinutes) return meal;
+        if (currentMinutes < start) return meal;
       }
       return MEAL_TIMES[0]; // next day's breakfast
     }
@@ -153,7 +153,7 @@
           }
         }
 
-        const mealText = (data[dayName] && data[dayName][currentMeal]) || "Mess is closed";
+        const mealText = (currentMeal && data[dayName] && data[dayName][currentMeal]) || "Mess is closed";
         const nextText = (data[dayName] && data[dayName][nextMeal.name]) || "Not available";
 
         document.getElementById("mealType").innerText = currentMeal ? `${dayName} ${currentMeal}` : "Mess is closed";
