@@ -2,344 +2,902 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mess Schedule</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0">
+    <meta name="description" content="Hide and reveal secret messages using invisible Unicode characters">
+    <meta name="theme-color" content="#00ff41">
+    <title>Unicode Steganography Tool</title>
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #FFF8F0; /* A warm, creamy background */
-        }
-        .card {
-            background-color: white;
-            border-radius: 1rem; /* Softer corners */
-            border: 1px solid #FBEAEB;
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
-            padding: 1.5rem;
-            transition: all 0.3s ease-in-out;
-        }
-        .card-title {
-            font-weight: 600;
-            color: #AD8B73; /* A warm brown color */
-        }
-        .meal-item {
-            color: #4F4A45; /* Darker brown for text */
-            font-size: 1.125rem; /* text-lg */
-            font-weight: 500;
-        }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #E57C23; /* Orange loader */
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        /* Custom radio buttons */
-        .form-radio {
-            appearance: none;
-            background-color: #fff;
+        * {
             margin: 0;
-            font: inherit;
-            color: currentColor;
-            width: 1.15em;
-            height: 1.15em;
-            border: 0.15em solid #E57C23;
-            border-radius: 50%;
-            transform: translateY(-0.075em);
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+            color: #00ff41;
+            min-height: 100vh;
+            overflow-x: auto;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid #00ff41;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #00ff41;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #00ff41; }
+            to { text-shadow: 0 0 30px #00ff41, 0 0 40px #00ff41; }
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 1.1em;
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 5px;
+        }
+        
+        .tab {
+            flex: 1;
+            max-width: 200px;
+            padding: 15px 25px;
+            background: transparent;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 1em;
+        }
+        
+        .tab.active {
+            background: #00ff41;
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+        
+        .tab:hover:not(.active) {
+            background: rgba(0, 255, 65, 0.2);
+            color: #00ff41;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .card {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            border-color: #00ff41;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+        }
+        
+        .card h3 {
+            color: #00ff41;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        textarea, input[type="text"] {
+            width: 100%;
+            background: #111;
+            color: #00ff41;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: inherit;
+            font-size: 1em;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s ease;
+        }
+        
+        textarea:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #00ff41;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+            font-weight: bold;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #00ff41, #00cc33);
+            color: #000;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(45deg, #00cc33, #009922);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #666, #555);
+            color: #fff;
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(45deg, #777, #666);
+        }
+        
+        .output {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-family: inherit;
+            min-height: 60px;
+            transition: all 0.3s ease;
+        }
+        
+        .output.success {
+            border-color: #00ff41;
+            background: rgba(0, 255, 65, 0.05);
+        }
+        
+        .output.error {
+            border-color: #ff4444;
+            background: rgba(255, 68, 68, 0.05);
+            color: #ff6666;
+        }
+        
+        .binary-output {
+            font-size: 0.9em;
+            color: #ffaa00;
+            line-height: 1.6;
+        }
+        
+        .settings {
             display: grid;
-            place-content: center;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
         }
-        .form-radio::before {
-            content: "";
-            width: 0.65em;
-            height: 0.65em;
-            border-radius: 50%;
-            transform: scale(0);
-            transition: 120ms transform ease-in-out;
-            box-shadow: inset 1em 1em #E57C23;
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 6px;
         }
-        .form-radio:checked::before {
-            transform: scale(1);
+        
+        .setting-item label {
+            color: #ccc;
+        }
+        
+        select {
+            background: #222;
+            color: #00ff41;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-family: inherit;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .output-container {
+            position: relative;
+        }
+        
+        .output-container:hover .copy-btn {
+            opacity: 1;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 255, 65, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 65, 0.3);
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #00ff41;
+        }
+        
+        .stat-label {
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header {
+                margin-bottom: 20px;
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+                margin-bottom: 8px;
+            }
+            
+            .subtitle {
+                font-size: 1em;
+            }
+            
+            .tabs {
+                flex-direction: column;
+                margin-bottom: 20px;
+            }
+            
+            .tab {
+                padding: 12px 20px;
+                margin: 2px 0;
+            }
+            
+            .card {
+                padding: 15px;
+                margin: 15px 0;
+            }
+            
+            .card h3 {
+                font-size: 1.1em;
+                margin-bottom: 12px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn {
+                padding: 15px 20px;
+                font-size: 1em;
+            }
+            
+            textarea, input[type="text"] {
+                min-height: 100px;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            .settings {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .setting-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                padding: 12px;
+            }
+            
+            .setting-item label {
+                font-weight: bold;
+            }
+            
+            select {
+                width: 100%;
+                padding: 8px 12px;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            .output {
+                font-size: 0.9em;
+                padding: 15px;
+            }
+            
+            .copy-btn {
+                position: static;
+                opacity: 1;
+                width: 100%;
+                margin-top: 10px;
+                padding: 8px 15px;
+                background: #333;
+                border-radius: 6px;
+            }
+            
+            .output-container:hover .copy-btn {
+                opacity: 1;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .stat-item {
+                padding: 12px;
+            }
+            
+            .stat-value {
+                font-size: 1.3em;
+            }
+            
+            .stat-label {
+                font-size: 0.8em;
+            }
+            
+            .binary-output {
+                font-size: 0.8em;
+                line-height: 1.4;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px;
+            }
+            
+            .header h1 {
+                font-size: 1.6em;
+            }
+            
+            .card {
+                padding: 12px;
+            }
+            
+            .btn {
+                padding: 12px 16px;
+                font-size: 0.9em;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .output {
+                padding: 12px;
+                font-size: 0.85em;
+            }
+        }
+        
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .btn:hover {
+                transform: none;
+            }
+            
+            .btn:active {
+                transform: scale(0.98);
+                transition: transform 0.1s ease;
+            }
+            
+            .tab:hover:not(.active) {
+                background: transparent;
+                color: #666;
+            }
+            
+            .card:hover {
+                border-color: #333;
+                box-shadow: none;
+            }
+            
+            .copy-btn {
+                opacity: 1;
+                min-height: 44px; /* iOS touch target size */
+            }
         }
     </style>
 </head>
-<body class="text-gray-800">
-
-    <div id="loader-container" class="flex justify-center items-center h-screen">
-        <div class="loader"></div>
-    </div>
-
-    <div id="app-container" class="container mx-auto p-4 md:p-6 max-w-4xl hidden">
-        <!-- Header -->
-        <header class="text-center mb-8">
-            <h1 id="app-title" class="text-4xl md:text-5xl font-bold text-[#A0522D]">Mess Schedule 🍛</h1>
-            <p id="current-date" class="text-gray-500 mt-2 text-lg"></p>
-            <p id="current-time" class="text-gray-500"></p>
-        </header>
-
-        <!-- Main Content -->
-        <main class="flex flex-col gap-6">
-            <!-- Current & Next Meal Section -->
-            <section class="grid md:grid-cols-2 gap-6">
-                <!-- What's being served -->
-                <div class="card">
-                    <h2 class="card-title mb-4 text-xl">Right Now 😋</h2>
-                    <div id="current-meal-content">
-                        <p class="meal-item text-blue-600">Checking...</p>
-                    </div>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🕵️ Unicode Steganography Tool</h1>
+            <p class="subtitle">Hide messages in plain sight using invisible Unicode characters</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('encode')">🔒 ENCODE</button>
+            <button class="tab" onclick="switchTab('decode')">🔓 DECODE</button>
+            <button class="tab" onclick="switchTab('analyze')">📊 ANALYZE</button>
+        </div>
+        
+        <!-- ENCODE TAB -->
+        <div id="encode" class="tab-content active">
+            <div class="card">
+                <h3>🔒 Encode Message</h3>
+                <div class="input-group">
+                    <label for="plaintext">Plain Text Message:</label>
+                    <textarea id="plaintext" placeholder="Enter your secret message here...">Hello World!</textarea>
                 </div>
-                <!-- Next Meal -->
-                <div class="card">
-                    <h2 class="card-title mb-4 text-xl">Coming Up Next 🕒</h2>
-                    <div id="next-meal-content">
-                         <p class="meal-item text-green-600">Figuring it out...</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Search Menu Section -->
-            <section class="card">
-                <h2 class="card-title mb-4 text-xl">Search Full Menu 🗓️</h2>
-                <div class="flex flex-col md:flex-row md:items-end gap-4">
-                    <div class="flex-grow">
-                        <label for="day-select" class="block text-sm font-medium text-gray-700 mb-1">Day of the Week</label>
-                        <select id="day-select" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-orange-500 focus:border-orange-500 bg-white">
-                            <!-- Options will be populated by JS -->
+                
+                <div class="settings">
+                    <div class="setting-item">
+                        <label>Cover Emoji:</label>
+                        <select id="coverEmoji">
+                            <option value="💾">💾 Floppy Disk</option>
+                            <option value="📁">📁 Folder</option>
+                            <option value="🔒">🔒 Lock</option>
+                            <option value="⚡">⚡ Lightning</option>
+                            <option value="🌟">🌟 Star</option>
+                            <option value="🔐">🔐 Closed Lock with Key</option>
+                            <option value="🗝️">🗝️ Old Key</option>
+                            <option value="🔑">🔑 Key</option>
+                            <option value="💻">💻 Laptop</option>
+                            <option value="⌨️">⌨️ Keyboard</option>
+                            <option value="🖥️">🖥️ Desktop Computer</option>
+                            <option value="📱">📱 Mobile Phone</option>
+                            <option value="💿">💿 Optical Disk</option>
+                            <option value="💽">💽 Minidisc</option>
+                            <option value="🛡️">🛡️ Shield</option>
+                            <option value="🔮">🔮 Crystal Ball</option>
+                            <option value="🎭">🎭 Performing Arts</option>
+                            <option value="👁️">👁️ Eye</option>
+                            <option value="🕵️">🕵️ Detective</option>
+                            <option value="🤫">🤫 Shushing Face</option>
+                            <option value="🎪">🎪 Circus Tent</option>
+                            <option value="🌙">🌙 Crescent Moon</option>
+                            <option value="🌊">🌊 Water Wave</option>
+                            <option value="❄️">❄️ Snowflake</option>
+                            <option value="🍃">🍃 Leaf Fluttering</option>
+                            <option value="✨">✨ Sparkles</option>
+                            <option value="💫">💫 Dizzy</option>
+                            <option value="🌈">🌈 Rainbow</option>
+                            <option value="🔥">🔥 Fire</option>
+                            <option value="💎">💎 Gem Stone</option>
+                            <option value="">None (Unicode only)</option>
                         </select>
                     </div>
-                    <div class="flex-grow md:pl-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Meal Time</label>
-                        <div id="meal-select" class="flex flex-wrap gap-x-6 gap-y-2 pt-2">
-                            <label class="inline-flex items-center"><input type="radio" name="meal" value="Breakfast" class="form-radio"> <span class="ml-2">Breakfast</span></label>
-                            <label class="inline-flex items-center"><input type="radio" name="meal" value="Lunch" class="form-radio"> <span class="ml-2">Lunch</span></label>
-                            <label class="inline-flex items-center"><input type="radio" name="meal" value="Snacks" class="form-radio"> <span class="ml-2">Snacks</span></label>
-                            <label class="inline-flex items-center"><input type="radio" name="meal" value="Dinner" class="form-radio"> <span class="ml-2">Dinner</span></label>
-                        </div>
+                    <div class="setting-item">
+                        <label>Encoding Method:</label>
+                        <select id="encodingMethod">
+                            <option value="zwc">Zero-Width Characters</option>
+                            <option value="variation">Variation Selectors</option>
+                        </select>
                     </div>
                 </div>
-                <div id="search-result" class="mt-6 p-4 bg-orange-50 rounded-lg min-h-[50px]">
-                    <p class="text-gray-500">Select a day and meal to see the menu.</p>
+                
+                <div class="button-group">
+                    <button class="btn" onclick="encodeMessage()">🔒 ENCODE</button>
+                    <button class="btn btn-secondary" onclick="clearEncode()">🗑️ CLEAR</button>
                 </div>
-            </section>
-        </main>
+                
+                <div class="output-container">
+                    <div id="encodedOutput" class="output"></div>
+                    <button class="copy-btn" onclick="copyToClipboard('encodedOutput')">📋 Copy</button>
+                </div>
+                
+                <div class="stats" id="encodeStats" style="display: none;">
+                    <div class="stat-item">
+                        <div class="stat-value" id="originalLength">0</div>
+                        <div class="stat-label">Original Length</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="encodedLength">0</div>
+                        <div class="stat-label">Encoded Length</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="hiddenChars">0</div>
+                        <div class="stat-label">Hidden Characters</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- DECODE TAB -->
+        <div id="decode" class="tab-content">
+            <div class="card">
+                <h3>🔓 Decode Message</h3>
+                <div class="input-group">
+                    <label for="encodedText">Encoded Message:</label>
+                    <textarea id="encodedText" placeholder="Paste your encoded message here..."></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn" onclick="decodeMessage()">🔓 DECODE</button>
+                    <button class="btn btn-secondary" onclick="clearDecode()">🗑️ CLEAR</button>
+                </div>
+                
+                <div class="output-container">
+                    <h4>Binary Representation:</h4>
+                    <div id="binaryOutput" class="output binary-output"></div>
+                    <button class="copy-btn" onclick="copyToClipboard('binaryOutput')">📋 Copy</button>
+                </div>
+                
+                <div class="output-container">
+                    <h4>Decoded Message:</h4>
+                    <div id="decodedOutput" class="output"></div>
+                    <button class="copy-btn" onclick="copyToClipboard('decodedOutput')">📋 Copy</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ANALYZE TAB -->
+        <div id="analyze" class="tab-content">
+            <div class="card">
+                <h3>📊 Analyze Text</h3>
+                <div class="input-group">
+                    <label for="analyzeText">Text to Analyze:</label>
+                    <textarea id="analyzeText" placeholder="Paste text to analyze for hidden characters..."></textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn" onclick="analyzeText()">📊 ANALYZE</button>
+                    <button class="btn btn-secondary" onclick="clearAnalyze()">🗑️ CLEAR</button>
+                </div>
+                
+                <div class="output-container">
+                    <h4>Character Analysis:</h4>
+                    <div id="analysisOutput" class="output"></div>
+                </div>
+                
+                <div class="stats" id="analysisStats" style="display: none;">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalChars">0</div>
+                        <div class="stat-label">Total Characters</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="visibleChars">0</div>
+                        <div class="stat-label">Visible Characters</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="invisibleChars">0</div>
+                        <div class="stat-label">Invisible Characters</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="suspiciousRatio">0%</div>
+                        <div class="stat-label">Suspicion Level</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- CONFIGURATION ---
-            const API_URL = 'https://sheets.googleapis.com/v4/spreadsheets/1386awb-Qw-_ld03zlXFNfkkHi7N9XY4LwirxQtkMpZk/values/Menu!A1:F1300?key=AIzaSyBQps5D4hUe8owgZOe4-qgFwoXwl5x6ATo';
-            const MEAL_TIMES = {
-                Breakfast: { start: 8.5, end: 10.5 }, // 8:30 AM - 10:30 AM
-                Lunch: { start: 13, end: 15 },       // 1:00 PM - 3:00 PM
-                Snacks: { start: 17.5, end: 19.5 },    // 5:30 PM - 7:30 PM
-                Dinner: { start: 20.5, end: 23 },     // 8:30 PM - 11:00 PM
-                NightCanteen: { start: 0, end: 2 }   // 12:00 AM - 2:00 AM
-            };
-            const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
-            // --- DOM ELEMENTS ---
-            const loaderContainer = document.getElementById('loader-container');
-            const appContainer = document.getElementById('app-container');
-            const appTitleEl = document.getElementById('app-title');
-            const currentDateEl = document.getElementById('current-date');
-            const currentTimeEl = document.getElementById('current-time');
-            const currentMealContentEl = document.getElementById('current-meal-content');
-            const nextMealContentEl = document.getElementById('next-meal-content');
-            const daySelectEl = document.getElementById('day-select');
-            const mealSelectContainer = document.getElementById('meal-select');
-            const searchResultEl = document.getElementById('search-result');
-
-            let menuData = {};
-
-            // --- FUNCTIONS ---
-
-            async function fetchAndProcessMenu() {
-                try {
-                    const response = await fetch(API_URL);
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+        
+        // Encoding function
+        function encodeMessage() {
+            const plaintext = document.getElementById('plaintext').value;
+            const coverEmoji = document.getElementById('coverEmoji').value;
+            const method = document.getElementById('encodingMethod').value;
+            
+            if (!plaintext.trim()) {
+                showError('encodedOutput', 'Please enter a message to encode');
+                return;
+            }
+            
+            try {
+                let encoded = '';
+                let hiddenCharCount = 0;
+                
+                for (let i = 0; i < plaintext.length; i++) {
+                    const charCode = plaintext.charCodeAt(i);
+                    const binary = charCode.toString(2).padStart(8, '0');
                     
-                    const data = await response.json();
-                    const rows = data.values;
-
-                    if (!rows || rows.length < 2) throw new Error("No data found in the sheet.");
-                    
-                    const monthName = rows[1] && rows[1][5] ? rows[1][5] : '';
-                    if (monthName) {
-                        appTitleEl.textContent = `Mess Schedule - ${monthName} 🍛`;
+                    if (coverEmoji) {
+                        encoded += coverEmoji;
                     }
                     
-                    for (let i = 1; i < rows.length; i++) {
-                        const row = rows[i];
-                        const day = row[0]?.trim();
-                        if (day && !menuData[day]) {
-                            menuData[day] = {
-                                Breakfast: row[1]?.trim() || 'Not specified',
-                                Lunch: row[2]?.trim() || 'Not specified',
-                                Snacks: row[3]?.trim() || 'Not specified',
-                                Dinner: row[4]?.trim() || 'Not specified'
-                            };
+                    // Convert binary to zero-width characters
+                    for (let bit of binary) {
+                        if (method === 'zwc') {
+                            if (bit === '0') {
+                                encoded += '\u200B'; // Zero Width Space
+                            } else {
+                                encoded += '\u200D'; // Zero Width Joiner
+                            }
+                        } else {
+                            // Variation selector method
+                            if (bit === '0') {
+                                encoded += '\uFE0E'; // Text Presentation Selector
+                            } else {
+                                encoded += '\uFE0F'; // Emoji Presentation Selector
+                            }
+                        }
+                        hiddenCharCount++;
+                    }
+                }
+                
+                document.getElementById('encodedOutput').textContent = encoded;
+                document.getElementById('encodedOutput').classList.add('success');
+                
+                // Update stats
+                document.getElementById('originalLength').textContent = plaintext.length;
+                document.getElementById('encodedLength').textContent = encoded.length;
+                document.getElementById('hiddenChars').textContent = hiddenCharCount;
+                document.getElementById('encodeStats').style.display = 'grid';
+                
+            } catch (error) {
+                showError('encodedOutput', 'Encoding failed: ' + error.message);
+            }
+        }
+        
+        // Decoding function
+        function decodeMessage() {
+            const encodedText = document.getElementById('encodedText').value;
+            
+            if (!encodedText.trim()) {
+                showError('decodedOutput', 'Please enter an encoded message to decode');
+                return;
+            }
+            
+            try {
+                // Remove cover emojis and extract hidden characters
+                let cleanText = encodedText.replace(/[\u{1F300}-\u{1F9FF}]/gu, '');
+                
+                let binaryString = '';
+                let decodedText = '';
+                
+                // Convert zero-width characters to binary
+                for (let i = 0; i < cleanText.length; i++) {
+                    const char = cleanText[i];
+                    const codePoint = char.codePointAt(0);
+                    
+                    if (codePoint === 0x200B || codePoint === 0x200C || codePoint === 0xFE0E) {
+                        binaryString += '0';
+                    } else if (codePoint === 0x200D || codePoint === 0xFE0F) {
+                        binaryString += '1';
+                    }
+                }
+                
+                // Convert binary to text
+                for (let i = 0; i <= binaryString.length - 8; i += 8) {
+                    const byte = binaryString.substr(i, 8);
+                    if (byte.length === 8) {
+                        const charCode = parseInt(byte, 2);
+                        if (charCode > 0 && charCode < 128) {
+                            decodedText += String.fromCharCode(charCode);
                         }
                     }
-                    
-                    populateDaySelector();
-                    updateLiveStatus();
-                    setupSearchListeners();
-
-                    loaderContainer.style.display = 'none';
-                    appContainer.classList.remove('hidden');
-
-                } catch (error) {
-                    console.error("Failed to fetch or process menu:", error);
-                    loaderContainer.innerHTML = `<p class="text-red-500 font-semibold p-4 text-center">Failed to load menu data.<br>Please check the console or try again later.</p>`;
-                }
-            }
-
-            function getEmojiForMeal(mealText) {
-                if (!mealText) return '🍴 ';
-                const lower = mealText.toLowerCase();
-                if (lower.includes('chicken') || lower.includes('mutton')) return '🍗 ';
-                if (lower.includes('egg')) return '🥚 ';
-                if (lower.includes('paneer') || lower.includes('cheese')) return '🧀 ';
-                if (lower.includes('dosa') || lower.includes('idli') || lower.includes('uttapam')) return '🥞 ';
-                if (lower.includes('paratha') || lower.includes('puri') || lower.includes('poori')) return '🍞 ';
-                if (lower.includes('roti') || lower.includes('chapati')) return '🫓 ';
-                if (lower.includes('rice') || lower.includes('pulao') || lower.includes('biryani')) return '🍚 ';
-                if (lower.includes('dal') || lower.includes('sambar')) return '🥣 ';
-                if (lower.includes('chole') || lower.includes('rajma')) return '🍲 ';
-                if (lower.includes('veg') || lower.includes('sabzi') || lower.includes('gobhi') || lower.includes('aloo') || lower.includes('bhindi')) return '🥦 ';
-                if (lower.includes('salad')) return '🥗 ';
-                if (lower.includes('juice') || lower.includes('lassi')) return '🧃 ';
-                if (lower.includes('milk') || lower.includes('tea') || lower.includes('coffee')) return '☕ ';
-                if (lower.includes('sandwich')) return '🥪 ';
-                if (lower.includes('noodles') || lower.includes('maggi')) return '🍜 ';
-                if (lower.includes('pasta')) return '🍝 ';
-                if (lower.includes('pizza')) return '🍕 ';
-                if (lower.includes('burger')) return '🍔 ';
-                if (lower.includes('samosa') || lower.includes('kachori')) return '🥟 ';
-                if (lower.includes('kheer') || lower.includes('halwa') || lower.includes('gulab jamun')) return '🍮 ';
-                if (lower.includes('fruit')) return '🍉 ';
-                if (lower.includes('curd') || lower.includes('dahi')) return '🥣 ';
-                return '🍴 ';
-            }
-
-            function populateDaySelector() {
-                const availableDays = Object.keys(menuData);
-                daySelectEl.innerHTML = '<option value="" disabled>Select a day</option>';
-                availableDays.forEach(day => {
-                    const option = document.createElement('option');
-                    option.value = day;
-                    option.textContent = day;
-                    daySelectEl.appendChild(option);
-                });
-                const today = DAYS[new Date().getDay()];
-                if(availableDays.includes(today)){
-                    daySelectEl.value = today;
-                }
-            }
-
-            function updateLiveStatus() {
-                const now = new Date();
-                const currentDayName = DAYS[now.getDay()];
-                const currentHour = now.getHours() + now.getMinutes() / 60;
-
-                const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                currentDateEl.textContent = now.toLocaleDateString('en-IN', dateOptions);
-                currentTimeEl.textContent = `Current Time: ${now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute:'2-digit' })}`;
-
-                let currentMeal = null;
-                for (const meal in MEAL_TIMES) {
-                    const timeSlot = MEAL_TIMES[meal];
-                    if (currentHour >= timeSlot.start && currentHour < timeSlot.end) {
-                        currentMeal = meal;
-                        break;
-                    }
                 }
                 
-                if (currentMeal === 'NightCanteen') {
-                    currentMealContentEl.innerHTML = `<p class="meal-item text-purple-600">🦉 Night Canteen is Open</p>`;
-                } else if (currentMeal) {
-                    const mealName = menuData[currentDayName]?.[currentMeal] || 'Menu not available';
-                    const emoji = getEmojiForMeal(mealName);
-                    currentMealContentEl.innerHTML = `
-                        <p class="text-sm text-gray-500">${currentMeal} is being served</p>
-                        <p class="meal-item">${emoji}${mealName}</p>
-                    `;
+                // Display results
+                const formattedBinary = binaryString.match(/.{1,64}/g)?.join('\n') || binaryString;
+                document.getElementById('binaryOutput').textContent = formattedBinary;
+                document.getElementById('binaryOutput').classList.add('success');
+                
+                if (decodedText) {
+                    document.getElementById('decodedOutput').textContent = decodedText;
+                    document.getElementById('decodedOutput').classList.add('success');
                 } else {
-                    currentMealContentEl.innerHTML = `<p class="meal-item text-red-600">💤 Mess is Closed</p>`;
+                    showError('decodedOutput', 'No valid text found in the encoded message');
                 }
-
-                let nextMealInfo = getNextMeal(currentDayName, currentHour);
-                if (nextMealInfo) {
-                    const { day, meal, time } = nextMealInfo;
-                    const mealName = menuData[day]?.[meal] || 'Menu not available';
-                    const emoji = getEmojiForMeal(mealName);
-                    nextMealContentEl.innerHTML = `
-                        <p class="text-sm text-gray-500">${day} ${meal} at ${time}</p>
-                        <p class="meal-item">${emoji}${mealName}</p>
-                    `;
+                
+            } catch (error) {
+                showError('decodedOutput', 'Decoding failed: ' + error.message);
+            }
+        }
+        
+        // Analysis function
+        function analyzeText() {
+            const text = document.getElementById('analyzeText').value;
+            
+            if (!text.trim()) {
+                showError('analysisOutput', 'Please enter text to analyze');
+                return;
+            }
+            
+            let analysis = '';
+            let totalChars = text.length;
+            let visibleChars = 0;
+            let invisibleChars = 0;
+            let zwcCount = 0;
+            
+            const zwcTypes = {
+                0x200B: 'Zero Width Space',
+                0x200C: 'Zero Width Non-Joiner',
+                0x200D: 'Zero Width Joiner',
+                0xFE0E: 'Text Presentation Selector',
+                0xFE0F: 'Emoji Presentation Selector',
+                0x2060: 'Word Joiner',
+                0xFEFF: 'Zero Width No-Break Space'
+            };
+            
+            analysis += 'CHARACTER BREAKDOWN:\n';
+            analysis += '═'.repeat(50) + '\n\n';
+            
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const codePoint = char.codePointAt(0);
+                
+                if (zwcTypes[codePoint]) {
+                    invisibleChars++;
+                    zwcCount++;
+                    analysis += `Position ${i}: ${zwcTypes[codePoint]} (U+${codePoint.toString(16).toUpperCase()})\n`;
+                } else if (codePoint < 32 || codePoint === 127) {
+                    invisibleChars++;
+                    analysis += `Position ${i}: Control Character (U+${codePoint.toString(16).toUpperCase()})\n`;
                 } else {
-                    nextMealContentEl.innerHTML = `<p class="meal-item">Could not determine next meal.</p>`;
+                    visibleChars++;
                 }
             }
-
-            function getNextMeal(currentDayName, currentHour) {
-                const mealOrder = ["Breakfast", "Lunch", "Snacks", "Dinner"];
-                let currentDayIndex = DAYS.indexOf(currentDayName);
-
-                for (const meal of mealOrder) {
-                    if (currentHour < MEAL_TIMES[meal].start) {
-                        return { day: currentDayName, meal, time: formatTime(MEAL_TIMES[meal].start) };
-                    }
-                }
-
-                const nextDayIndex = (currentDayIndex + 1) % 7;
-                const nextDayName = DAYS[nextDayIndex];
-                return { day: nextDayName, meal: "Breakfast", time: formatTime(MEAL_TIMES.Breakfast.start) };
+            
+            if (zwcCount === 0) {
+                analysis += 'No zero-width characters detected.\n';
+            } else {
+                analysis += `\nFound ${zwcCount} potentially hidden characters!\n`;
             }
-
-            function setupSearchListeners() {
-                const searchInputs = [daySelectEl, ...mealSelectContainer.querySelectorAll('input[name="meal"]')];
-                searchInputs.forEach(input => {
-                    input.addEventListener('change', performSearch);
-                });
+            
+            const suspicionRatio = totalChars > 0 ? Math.round((invisibleChars / totalChars) * 100) : 0;
+            
+            analysis += '\nSUSPICION ANALYSIS:\n';
+            analysis += '═'.repeat(50) + '\n';
+            if (suspicionRatio > 50) {
+                analysis += '🚨 HIGH: This text likely contains hidden data!\n';
+            } else if (suspicionRatio > 20) {
+                analysis += '⚠️ MEDIUM: Suspicious invisible character ratio\n';
+            } else if (suspicionRatio > 0) {
+                analysis += '📝 LOW: Some invisible characters detected\n';
+            } else {
+                analysis += '✅ CLEAN: No suspicious characters found\n';
             }
-
-            function performSearch() {
-                const selectedDay = daySelectEl.value;
-                const selectedMealRadio = mealSelectContainer.querySelector('input[name="meal"]:checked');
+            
+            document.getElementById('analysisOutput').textContent = analysis;
+            document.getElementById('analysisOutput').classList.add('success');
+            
+            // Update stats
+            document.getElementById('totalChars').textContent = totalChars;
+            document.getElementById('visibleChars').textContent = visibleChars;
+            document.getElementById('invisibleChars').textContent = invisibleChars;
+            document.getElementById('suspiciousRatio').textContent = suspicionRatio + '%';
+            document.getElementById('analysisStats').style.display = 'grid';
+        }
+        
+        // Utility functions
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
                 
-                if (!selectedDay || !selectedMealRadio) {
-                    searchResultEl.innerHTML = '<p class="text-gray-500">Please select both a day and a meal.</p>';
-                    return;
-                }
-                const selectedMeal = selectedMealRadio.value;
-                
-                const result = menuData[selectedDay]?.[selectedMeal] || 'Menu not available for this selection.';
-                const emoji = getEmojiForMeal(result);
-                searchResultEl.innerHTML = `<p class="meal-item text-orange-800 font-semibold">${emoji}${result}</p>`;
-            }
-
-            function formatTime(decimalHour) {
-                let hours = Math.floor(decimalHour);
-                let minutes = Math.round((decimalHour - hours) * 60);
-                const ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12;
-                hours = hours ? hours : 12;
-                minutes = minutes < 10 ? '0' + minutes : minutes;
-                return `${hours}:${minutes} ${ampm}`;
-            }
-
-            fetchAndProcessMenu();
-            setInterval(updateLiveStatus, 30000); 
-        });
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+        
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = '❌ ERROR: ' + message;
+            element.classList.remove('success');
+            element.classList.add('error');
+        }
+        
+        function clearEncode() {
+            document.getElementById('plaintext').value = '';
+            document.getElementById('encodedOutput').textContent = '';
+            document.getElementById('encodedOutput').classList.remove('success', 'error');
+            document.getElementById('encodeStats').style.display = 'none';
+        }
+        
+        function clearDecode() {
+            document.getElementById('encodedText').value = '';
+            document.getElementById('binaryOutput').textContent = '';
+            document.getElementById('decodedOutput').textContent = '';
+            document.getElementById('binaryOutput').classList.remove('success', 'error');
+            document.getElementById('decodedOutput').classList.remove('success', 'error');
+        }
+        
+        function clearAnalyze() {
+            document.getElementById('analyzeText').value = '';
+            document.getElementById('analysisOutput').textContent = '';
+            document.getElementById('analysisOutput').classList.remove('success', 'error');
+            document.getElementById('analysisStats').style.display = 'none';
+        }
+        
+        // Auto-decode sample on page load
+        window.onload = function() {
+            document.getElementById('encodedText').value = '💾‍‌‌‍‌‌‍‍💾‌‌‍​‌‌‌‌‌‌💾​‍‍‌‌‍‍‍‌‌💾​‍‍‌‌‍‍‍‍💾​‍‍‍‌‌‍‍💾​‍‍‌‌‌‌‍‍💾‌‌‍​‌‌‌‌‌‌💾​‍‍‍‍‌‌‍💾​‍‍‌‌‍‍‍‍💾​‍‍‍‌‌‍💾‌‌‍​‌‌‌‌‌‌💾​‍‌‌‌‌‍‌‌💾​‍‍‌‌‌‌‍‍💾​‍‍‍‌‌‌‌💾​‍‍‌‌‌‌‌‌‍💾​‍‍‍‌‌‍‍💾​‍‍‍‍‌‍💾​‍‍‌‌‍‍‌‌💾​‍‍‌‌‌‌‍‍💾​‍‍‌‌‌‌‍‍💾';
+        };
     </script>
 </body>
 </html>
