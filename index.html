@@ -663,34 +663,38 @@
                 let hiddenCharCount = 0;
                 
                 for (let i = 0; i < plaintext.length; i++) {
-                    const charCode = plaintext.charCodeAt(i);
-                    const binary = charCode.toString(2).padStart(8, '0');
-                    
                     if (coverEmoji) {
                         encoded += coverEmoji;
                     }
+                    
+                    const charCode = plaintext.charCodeAt(i);
+                    const binary = charCode.toString(2).padStart(8, '0');
                     
                     // Convert binary to zero-width characters
                     for (let bit of binary) {
                         if (method === 'zwc') {
                             if (bit === '0') {
                                 encoded += '\u200B'; // Zero Width Space
+                                hiddenCharCount++;
                             } else {
                                 encoded += '\u200D'; // Zero Width Joiner
+                                hiddenCharCount++;
                             }
                         } else {
                             // Variation selector method
                             if (bit === '0') {
                                 encoded += '\uFE0E'; // Text Presentation Selector
+                                hiddenCharCount++;
                             } else {
                                 encoded += '\uFE0F'; // Emoji Presentation Selector
+                                hiddenCharCount++;
                             }
                         }
-                        hiddenCharCount++;
                     }
                 }
                 
                 document.getElementById('encodedOutput').textContent = encoded;
+                document.getElementById('encodedOutput').classList.remove('error');
                 document.getElementById('encodedOutput').classList.add('success');
                 
                 // Update stats
@@ -714,49 +718,65 @@
             }
             
             try {
-                // Remove cover emojis and extract hidden characters
-                let cleanText = encodedText.replace(/[\u{1F300}-\u{1F9FF}]/gu, '');
-                
                 let binaryString = '';
                 let decodedText = '';
                 
-                // Convert zero-width characters to binary
-                for (let i = 0; i < cleanText.length; i++) {
-                    const char = cleanText[i];
+                // Process each character in the encoded text
+                for (let i = 0; i < encodedText.length; i++) {
+                    const char = encodedText[i];
                     const codePoint = char.codePointAt(0);
                     
+                    // Map zero-width and invisible characters to binary
                     if (codePoint === 0x200B || codePoint === 0x200C || codePoint === 0xFE0E) {
+                        // Zero Width Space, Zero Width Non-Joiner, Text Presentation = 0
                         binaryString += '0';
                     } else if (codePoint === 0x200D || codePoint === 0xFE0F) {
+                        // Zero Width Joiner, Emoji Presentation = 1
                         binaryString += '1';
                     }
+                    // Skip visible characters (emojis, regular text, etc.)
                 }
                 
-                // Convert binary to text
-                for (let i = 0; i <= binaryString.length - 8; i += 8) {
-                    const byte = binaryString.substr(i, 8);
+                console.log('Binary string:', binaryString);
+                console.log('Binary length:', binaryString.length);
+                
+                // Convert binary groups of 8 to ASCII characters
+                for (let i = 0; i < binaryString.length; i += 8) {
+                    const byte = binaryString.slice(i, i + 8);
                     if (byte.length === 8) {
                         const charCode = parseInt(byte, 2);
-                        if (charCode > 0 && charCode < 128) {
+                        console.log(`Byte: ${byte} -> CharCode: ${charCode} -> Char: ${String.fromCharCode(charCode)}`);
+                        
+                        // Only add printable ASCII characters
+                        if (charCode >= 32 && charCode <= 126) {
+                            decodedText += String.fromCharCode(charCode);
+                        } else if (charCode === 10 || charCode === 13) {
+                            // Allow newlines and carriage returns
                             decodedText += String.fromCharCode(charCode);
                         }
                     }
                 }
                 
-                // Display results
-                const formattedBinary = binaryString.match(/.{1,64}/g)?.join('\n') || binaryString;
-                document.getElementById('binaryOutput').textContent = formattedBinary;
+                // Display binary representation (formatted for readability)
+                const formattedBinary = binaryString.match(/.{1,8}/g)?.join(' ') || binaryString;
+                const binaryWithNewlines = formattedBinary.match(/.{1,64}/g)?.join('\n') || formattedBinary;
+                
+                document.getElementById('binaryOutput').textContent = binaryWithNewlines;
+                document.getElementById('binaryOutput').classList.remove('error');
                 document.getElementById('binaryOutput').classList.add('success');
                 
-                if (decodedText) {
+                // Display decoded text
+                if (decodedText.trim()) {
                     document.getElementById('decodedOutput').textContent = decodedText;
+                    document.getElementById('decodedOutput').classList.remove('error');
                     document.getElementById('decodedOutput').classList.add('success');
                 } else {
-                    showError('decodedOutput', 'No valid text found in the encoded message');
+                    showError('decodedOutput', 'No valid text found. Binary length: ' + binaryString.length + ' bits');
                 }
                 
             } catch (error) {
                 showError('decodedOutput', 'Decoding failed: ' + error.message);
+                console.error('Decoding error:', error);
             }
         }
         
@@ -894,9 +914,16 @@
             document.getElementById('analysisStats').style.display = 'none';
         }
         
-        // Auto-decode sample on page load
+        // Auto-decode sample on page load and test encoding
         window.onload = function() {
+            // Set the sample encoded text
             document.getElementById('encodedText').value = '💾‍‌‌‍‌‌‍‍💾‌‌‍​‌‌‌‌‌‌💾​‍‍‌‌‍‍‍‌‌💾​‍‍‌‌‍‍‍‍💾​‍‍‍‌‌‍‍💾​‍‍‌‌‌‌‍‍💾‌‌‍​‌‌‌‌‌‌💾​‍‍‍‍‌‌‍💾​‍‍‌‌‍‍‍‍💾​‍‍‍‌‌‍💾‌‌‍​‌‌‌‌‌‌💾​‍‌‌‌‌‍‌‌💾​‍‍‌‌‌‌‍‍💾​‍‍‍‌‌‌‌💾​‍‍‌‌‌‌‌‌‍💾​‍‍‍‌‌‍‍💾​‍‍‍‍‌‍💾​‍‍‌‌‍‍‌‌💾​‍‍‌‌‌‌‍‍💾​‍‍‌‌‌‌‍‍💾';
+            
+            // Test the encoding with a simple message
+            setTimeout(() => {
+                document.getElementById('plaintext').value = 'Test';
+                encodeMessage();
+            }, 500);
         };
     </script>
 </body>
